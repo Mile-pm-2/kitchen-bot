@@ -1,0 +1,22 @@
+# Деплой на Render.com (бесплатный тариф)
+# https://render.com — зарегистрируйтесь и подключите GitHub-репозиторий
+
+services:
+  - type: web
+    name: kitchen-bot
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.0"
+      - key: WEBHOOK_MODE
+        value: "true"
+      - key: BOT_TOKEN
+        sync: false
+      - key: ADMIN_TELEGRAM_ID
+        sync: false
+      - key: WEBAPP_URL
+        sync: false
