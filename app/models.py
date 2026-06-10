@@ -24,6 +24,17 @@ class UserRole(str, enum.Enum):
     ADMIN = "admin"
 
 
+class ChecklistPeriod(str, enum.Enum):
+    OPENING = "opening"
+    CLOSING = "closing"
+
+
+class ChecklistStatus(str, enum.Enum):
+    TODO = "todo"
+    DONE = "done"
+    CANCELLED = "cancelled"
+
+
 class User(Base):
     __tablename__ = "users"
 
@@ -89,6 +100,27 @@ class OrderItem(Base):
     resolved_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
     ingredient: Mapped["Ingredient"] = relationship()
+
+
+class ChecklistItem(Base):
+    __tablename__ = "checklist_items"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    period: Mapped[ChecklistPeriod] = mapped_column(Enum(ChecklistPeriod), index=True)
+    title: Mapped[str] = mapped_column(String(240))
+    status: Mapped[ChecklistStatus] = mapped_column(
+        Enum(ChecklistStatus), default=ChecklistStatus.TODO, index=True
+    )
+    created_by_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    completed_by_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    cancelled_by_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    cancelled_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+    created_by: Mapped["User"] = relationship(foreign_keys=[created_by_id])
+    completed_by: Mapped["User | None"] = relationship(foreign_keys=[completed_by_id])
+    cancelled_by: Mapped["User | None"] = relationship(foreign_keys=[cancelled_by_id])
 
 
 class Recipe(Base):

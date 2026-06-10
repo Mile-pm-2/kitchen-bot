@@ -2,7 +2,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field
 
-from app.models import UserRole
+from app.models import ChecklistPeriod, ChecklistStatus, UserRole
 
 
 class UserOut(BaseModel):
@@ -72,6 +72,25 @@ class OrderItemOut(BaseModel):
 
 class OrderItemCreate(BaseModel):
     ingredient_id: int
+
+
+class ChecklistItemOut(BaseModel):
+    id: int
+    period: ChecklistPeriod
+    title: str
+    status: ChecklistStatus
+    created_by_id: int
+    created_by_name: str
+    completed_by_name: str | None = None
+    cancelled_by_name: str | None = None
+    created_at: datetime
+    completed_at: datetime | None = None
+    cancelled_at: datetime | None = None
+
+
+class ChecklistItemCreate(BaseModel):
+    period: ChecklistPeriod
+    title: str = Field(..., min_length=1, max_length=240)
 
 
 class RecipeIngredientOut(BaseModel):

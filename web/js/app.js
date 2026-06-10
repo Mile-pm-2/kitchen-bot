@@ -13,6 +13,7 @@ const App = {
     tabTitles: {
         revision: 'Ревизия',
         recipes: 'ТТК',
+        checklist: 'Чек-лист',
         orders: 'К заказу',
         users: 'Управление ролями',
     },
@@ -126,6 +127,7 @@ const App = {
         const renderers = {
             revision: () => this.renderRevision(),
             recipes: () => this.renderRecipes(),
+            checklist: () => this.renderChecklist(),
             orders: () => this.renderOrders(),
             users: () => this.renderUsers(),
         };
@@ -457,6 +459,118 @@ const App = {
             await API.deleteRecipe(id);
             this.closeModal();
             this.toast('Рецепт удалён', 'success');
+            await this.render();
+        } catch (e) { this.toast(e.message, 'error'); }
+    },
+
+    // ─── ЧЕК-ЛИСТ ───
+    async renderChecklist() {
+        const items = await API.getChecklist();
+        const content = document.getElementById('content');
+
+        const sections = [
+            { period: 'opening', title: 'Перед открытием', hint: 'Подготовка зала, кухни и заготовок' },
+            { period: 'closing', title: 'Перед закрытием', hint: 'Уборка, списания и подготовка к утру' },
+        ];
+
+        let html = '';
+        sections.forEach(section => {
+            const sectionItems = items.filter(item => item.period === section.period);
+            const active = sectionItems.filter(item => item.status === 'todo');
+            const finished = sectionItems.filter(item => item.status !== 'todo');
+
+            html += `
+                <div class="card checklist-section">
+                    <div class="section-header">
+                        <div>
+                            <h3>${section.title}</h3>
+                            <div class="card-subtitle">${section.hint}</div>
+                        </div>
+                        <button class="btn btn-sm btn-outline" onclick="App.showAddChecklistItem('${section.period}')">Добавить</button>
+                    </div>
+                    ${active.length ? active.map(item => this.checklistItemHTML(item)).join('') : `
+                        <div class="checklist-empty">Активных задач нет</div>
+                    `}
+                    ${finished.length ? `
+                        <div class="checklist-history">
+                            <div class="card-subtitle">Завершённые и отменённые</div>
+                            ${finished.slice(0, 8).map(item => this.checklistItemHTML(item)).join('')}
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        });
+
+        content.innerHTML = html;
+    },
+
+    checklistItemHTML(item) {
+        const statusLabel = {
+            todo: 'В работе',
+            done: 'Готово',
+            cancelled: 'Отменено',
+        }[item.status] || item.status;
+        const actor = item.status === 'done'
+            ? item.completed_by_name
+            : item.status === 'cancelled'
+                ? item.cancelled_by_name
+                : item.created_by_name;
+        const time = item.status === 'done'
+            ? item.completed_at
+            : item.status === 'cancelled'
+                ? item.cancelled_at
+                : item.created_at;
+
+        return `
+            <div class="checklist-item ${item.status}">
+                <div class="checklist-main">
+                    <div class="ingredient-name">${item.title}</div>
+                    <div class="ingredient-meta">${statusLabel}${actor ? ` · ${actor}` : ''}${time ? ` · ${this.formatDate(time)}` : ''}</div>
+                </div>
+                ${item.status === 'todo' ? `
+                    <div class="checklist-actions">
+                        <button class="btn btn-sm btn-success" onclick="App.handleCompleteChecklistItem(${item.id})">Готово</button>
+                        <button class="btn btn-sm btn-outline" onclick="App.handleCancelChecklistItem(${item.id})">Отменить</button>
+                    </div>
+                ` : ''}
+            </div>
+        `;
+    },
+
+    showAddChecklistItem(period) {
+        const title = period === 'opening' ? 'Задача перед открытием' : 'Задача перед закрытием';
+        this.openModal(title, `
+            <div class="form-group">
+                <label>Что нужно сделать</label>
+                <input id="checklist-title" type="text" placeholder="Например: проверить заготовки">
+            </div>
+        `, `<button class="btn btn-primary" onclick="App.handleAddChecklistItem('${period}')">Добавить</button>`);
+    },
+
+    async handleAddChecklistItem(period) {
+        const title = document.getElementById('checklist-title').value.trim();
+        if (!title) { this.toast('Введите задачу', 'error'); return; }
+
+        try {
+            await API.createChecklistItem({ period, title });
+            this.closeModal();
+            this.toast('Задача добавлена', 'success');
+            await this.render();
+        } catch (e) { this.toast(e.message, 'error'); }
+    },
+
+    async handleCompleteChecklistItem(id) {
+        try {
+            await API.completeChecklistItem(id);
+            this.toast('Отмечено как выполнено', 'success');
+            await this.render();
+        } catch (e) { this.toast(e.message, 'error'); }
+    },
+
+    async handleCancelChecklistItem(id) {
+        try {
+            await API.cancelChecklistItem(id);
+            this.toast('Задача отменена', 'success');
             await this.render();
         } catch (e) { this.toast(e.message, 'error'); }
     },

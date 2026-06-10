@@ -55,6 +55,12 @@ const API = {
     createOrder: (ingredientId) => API.post('/api/inventory/orders', { ingredient_id: ingredientId }),
     resolveOrder: (id) => API.post(`/api/inventory/orders/${id}/resolve`),
 
+    // Checklist
+    getChecklist: () => API.get('/api/checklist'),
+    createChecklistItem: (data) => API.post('/api/checklist', data),
+    completeChecklistItem: (id) => API.post(`/api/checklist/${id}/done`),
+    cancelChecklistItem: (id) => API.post(`/api/checklist/${id}/cancel`),
+
     // Recipes
     getRecipes: () => API.get('/api/recipes'),
     getRecipe: (id) => API.get(`/api/recipes/${id}`),

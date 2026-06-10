@@ -241,6 +241,22 @@ body {
     border-left: 2px solid currentColor;
 }
 
+.nav-icon-checklist::before {
+    inset: 3px;
+    border: 2px solid currentColor;
+    border-radius: 5px;
+}
+
+.nav-icon-checklist::after {
+    left: 7px;
+    right: 6px;
+    top: 8px;
+    height: 6px;
+    border-top: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    box-shadow: -3px -1px 0 -1px currentColor, -3px 5px 0 -1px currentColor;
+}
+
 .nav-icon-orders::before {
     left: 3px;
     right: 3px;
@@ -502,6 +518,69 @@ body {
     background-size: 5px 5px, 5px 5px;
     background-repeat: no-repeat;
     padding-right: 30px;
+}
+
+.form-group select option,
+.user-item select option {
+    background: #141d2e;
+    color: #f3f6fb;
+}
+
+.form-group select option:checked,
+.user-item select option:checked {
+    background: #d8a35d;
+    color: #171007;
+}
+
+.checklist-section .section-header {
+    align-items: flex-start;
+}
+
+.checklist-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 11px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.checklist-item:last-child {
+    border-bottom: 0;
+}
+
+.checklist-item.done .ingredient-name {
+    color: var(--text-2);
+    text-decoration: line-through;
+}
+
+.checklist-item.cancelled .ingredient-name {
+    color: var(--text-3);
+    text-decoration: line-through;
+}
+
+.checklist-main {
+    flex: 1;
+    min-width: 0;
+}
+
+.checklist-actions {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.checklist-empty {
+    color: var(--text-3);
+    font-size: 13px;
+    padding: 10px 0;
+}
+
+.checklist-history {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px dashed rgba(255, 255, 255, 0.12);
 }
 
 .order-item {

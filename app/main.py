@@ -7,7 +7,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
 from app.database import init_db
-from app.routes import inventory, recipes, shifts, users
+from app.routes import checklist, inventory, recipes, shifts, users
 from bot.telegram_app import setup_webhook, webhook_router
 
 WEB_DIR = Path(__file__).parent.parent / "web"
@@ -32,6 +32,7 @@ app.add_middleware(
 )
 
 app.include_router(shifts.router)
+app.include_router(checklist.router)
 app.include_router(inventory.router)
 app.include_router(recipes.router)
 app.include_router(users.router)
