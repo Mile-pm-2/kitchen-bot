@@ -31,7 +31,7 @@ const App = {
             if (this.isChef) this.updateOrdersBadge();
         } catch (e) {
             document.getElementById('content').innerHTML =
-                `<div class="empty-state"><div class="empty-icon">⚠️</div><p>Ошибка загрузки: ${e.message}</p></div>`;
+                `<div class="empty-state"><div class="empty-icon empty-icon-error"></div><p>Ошибка загрузки: ${e.message}</p></div>`;
         }
     },
 
@@ -117,7 +117,7 @@ const App = {
         try {
             await renderers[this.currentTab]();
         } catch (e) {
-            content.innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><p>${e.message}</p></div>`;
+            content.innerHTML = `<div class="empty-state"><div class="empty-icon empty-icon-error"></div><p>${e.message}</p></div>`;
         }
     },
 
@@ -133,9 +133,7 @@ const App = {
         let html = `
             <div class="card">
                 <div class="shift-status">
-                    <div class="shift-indicator ${isOpen ? 'open' : 'closed'}">
-                        ${isOpen ? '🟢' : '🔴'}
-                    </div>
+                    <div class="shift-indicator ${isOpen ? 'open' : 'closed'}"></div>
                     <div class="card-title">${isOpen ? 'Смена открыта' : 'Смена закрыта'}</div>
                     ${isOpen && shift ? `
                         <div class="shift-time">Начало: ${this.formatDate(shift.opened_at)}</div>
@@ -214,7 +212,7 @@ const App = {
 
         if (ingredients.length === 0) {
             html += `<div class="empty-state">
-                <div class="empty-icon">📋</div>
+                <div class="empty-icon"></div>
                 <p>Нет ингредиентов</p>
                 ${this.isChef ? '<p>Нажмите + чтобы добавить</p>' : ''}
             </div>`;
@@ -231,7 +229,7 @@ const App = {
                             <div class="ingredient-meta">
                                 Мин: ${ing.min_quantity} ${ing.unit}
                                 ${ing.current_quantity !== null ? ` | Факт: ${ing.current_quantity} ${ing.unit}` : ''}
-                                ${ing.needs_order ? ' ⚠️ Заказать!' : ''}
+                                ${ing.needs_order ? ' | <span class="meta-alert">Заказать</span>' : ''}
                             </div>
                         </div>
                         <div class="ingredient-qty">
@@ -242,7 +240,7 @@ const App = {
                             <span>${ing.unit}</span>
                         </div>
                         ${this.isChef ? `
-                            <button class="btn btn-sm btn-outline" onclick="App.showEditIngredient(${ing.id})">✏️</button>
+                            <button class="btn btn-sm btn-outline" onclick="App.showEditIngredient(${ing.id})">Изм.</button>
                         ` : ''}
                     </div>`;
             });
@@ -371,7 +369,7 @@ const App = {
 
         if (recipes.length === 0) {
             html += `<div class="empty-state">
-                <div class="empty-icon">📖</div>
+                <div class="empty-icon"></div>
                 <p>Нет рецептов</p>
                 ${this.isChef ? '<p>Нажмите + чтобы создать ТТК</p>' : ''}
             </div>`;
@@ -533,7 +531,7 @@ const App = {
 
         if (orders.length === 0) {
             content.innerHTML = `<div class="empty-state">
-                <div class="empty-icon">✅</div>
+                <div class="empty-icon empty-icon-success"></div>
                 <p>Всё в наличии, заказывать нечего</p>
             </div>`;
             return;
@@ -550,7 +548,7 @@ const App = {
                         </div>
                         <div class="ingredient-meta">${this.formatDate(o.created_at)}</div>
                     </div>
-                    <button class="btn btn-sm btn-success" onclick="App.handleResolveOrder(${o.id})">✓</button>
+                    <button class="btn btn-sm btn-success" onclick="App.handleResolveOrder(${o.id})">Готово</button>
                 </div>`;
         });
         html += `</div>`;
@@ -598,7 +596,7 @@ const App = {
 
         if (users.length <= 1) {
             html += `<div class="empty-state" style="padding:24px">
-                <div class="empty-icon">👥</div>
+                <div class="empty-icon empty-icon-users"></div>
                 <p>Пока только вы</p>
                 <p>Когда сотрудник откроет бота — он появится здесь</p>
             </div>`;

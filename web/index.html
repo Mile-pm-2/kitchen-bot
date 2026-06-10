@@ -16,31 +16,31 @@
 
         <main id="content" class="content">
             <div class="empty-state" id="loading-state">
-                <div class="empty-icon">🍳</div>
+                <div class="empty-icon empty-icon-loading"></div>
                 <p>Загрузка...</p>
             </div>
         </main>
 
         <nav class="bottom-nav">
             <button class="nav-btn active" data-tab="shift">
-                <span class="nav-icon">⏱</span>
+                <span class="nav-icon nav-icon-shift" aria-hidden="true"></span>
                 <span>Смена</span>
             </button>
             <button class="nav-btn" data-tab="revision">
-                <span class="nav-icon">📋</span>
+                <span class="nav-icon nav-icon-revision" aria-hidden="true"></span>
                 <span>Ревизия</span>
             </button>
             <button class="nav-btn" data-tab="recipes">
-                <span class="nav-icon">📖</span>
+                <span class="nav-icon nav-icon-recipes" aria-hidden="true"></span>
                 <span>ТТК</span>
             </button>
             <button class="nav-btn chef-only hidden" data-tab="orders">
-                <span class="nav-icon">🛒</span>
+                <span class="nav-icon nav-icon-orders" aria-hidden="true"></span>
                 <span>Заказ</span>
                 <span id="orders-badge" class="nav-badge hidden">0</span>
             </button>
             <button class="nav-btn admin-only hidden" data-tab="users">
-                <span class="nav-icon">👥</span>
+                <span class="nav-icon nav-icon-users" aria-hidden="true"></span>
                 <span>Роли</span>
             </button>
         </nav>
