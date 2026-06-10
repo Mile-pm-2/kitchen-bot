@@ -10,13 +10,16 @@
 <body>
     <div id="app">
         <header class="header">
-            <div class="header-top">
-                <h1 id="page-title">Смена</h1>
-                <span id="user-badge" class="badge"></span>
-            </div>
+            <h1 id="page-title">Смена</h1>
+            <span id="user-badge" class="badge"></span>
         </header>
 
-        <main id="content" class="content"></main>
+        <main id="content" class="content">
+            <div class="empty-state" id="loading-state">
+                <div class="empty-icon">🍳</div>
+                <p>Загрузка...</p>
+            </div>
+        </main>
 
         <nav class="bottom-nav">
             <button class="nav-btn active" data-tab="shift">
