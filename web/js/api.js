@@ -59,6 +59,7 @@ const API = {
     deleteIngredient: (id) => API.del(`/api/inventory/ingredients/${id}`),
     updateRevision: (id, quantity) => API.post(`/api/inventory/ingredients/${id}/revision`, { quantity }),
     getOrders: (resolved = false) => API.get(`/api/inventory/orders?resolved=${resolved}`),
+    createOrder: (ingredientId) => API.post('/api/inventory/orders', { ingredient_id: ingredientId }),
     resolveOrder: (id) => API.post(`/api/inventory/orders/${id}/resolve`),
 
     // Recipes

@@ -70,6 +70,10 @@ class OrderItemOut(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class OrderItemCreate(BaseModel):
+    ingredient_id: int
+
+
 class RecipeIngredientOut(BaseModel):
     id: int
     name: str

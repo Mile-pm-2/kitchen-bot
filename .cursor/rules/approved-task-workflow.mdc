@@ -1,0 +1,17 @@
+---
+description: Workflow after user approves a task specification
+alwaysApply: true
+---
+
+# Approved Task Workflow
+
+When the user gives a task specification, first describe what will be changed and wait for the user's approval.
+
+After the user approves the plan:
+
+- Implement the approved changes.
+- Run focused checks appropriate for the touched files.
+- Commit the changes with a concise Russian commit message.
+- Push the current branch without asking for an additional push confirmation.
+
+Do not push unapproved work. If the implementation discovers a meaningful scope change or risky trade-off, pause and ask before continuing.

@@ -1,8 +1,11 @@
 from aiogram import Dispatcher
 from aiogram.filters import Command
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message, WebAppInfo
+from sqlalchemy import select
 
 from app.config import settings
+from app.database import async_session
+from app.models import User, UserRole
 
 
 def get_webapp_keyboard() -> InlineKeyboardMarkup:
@@ -18,32 +21,72 @@ def get_webapp_keyboard() -> InlineKeyboardMarkup:
     )
 
 
+async def ensure_user_from_message(message: Message) -> User | None:
+    user_data = message.from_user
+    if not user_data:
+        return None
+
+    async with async_session() as session:
+        result = await session.execute(
+            select(User).where(User.telegram_id == user_data.id)
+        )
+        user = result.scalar_one_or_none()
+
+        if user:
+            user.username = user_data.username
+            user.first_name = user_data.first_name or "Пользователь"
+        else:
+            role = (
+                UserRole.ADMIN
+                if user_data.id == settings.admin_telegram_id
+                else UserRole.COOK
+            )
+            user = User(
+                telegram_id=user_data.id,
+                username=user_data.username,
+                first_name=user_data.first_name or "Пользователь",
+                role=role,
+            )
+            session.add(user)
+
+        await session.commit()
+        return user
+
+
 async def cmd_start(message: Message):
-    role_hint = ""
-    if message.from_user and message.from_user.id == settings.admin_telegram_id:
-        role_hint = (
-            "\n\n👑 Вы — главный администратор.\n"
+    user = await ensure_user_from_message(message)
+    is_admin = user and user.role == UserRole.ADMIN
+
+    if is_admin:
+        text = (
+            "Добро пожаловать в систему управления кухней.\n\n"
+            "Вы — главный администратор.\n"
             "После открытия приложения зайдите во вкладку «Роли» "
-            "и назначьте роли сотрудникам."
+            "и назначьте роли сотрудникам.\n\n"
+            "<b>Как добавить сотрудника:</b>\n"
+            "1. Отправьте коллеге ссылку на этого бота\n"
+            "2. Он нажимает /start и «Открыть кухню»\n"
+            "3. В приложении откройте вкладку «Роли» и выберите ему роль\n\n"
+            "Роли:\n"
+            "• <b>Повар</b> — смена, ревизия, просмотр ТТК\n"
+            "• <b>Су-шеф/Шеф</b> — всё + ингредиенты, ТТК, заказы"
+        )
+    else:
+        text = (
+            "Добро пожаловать в систему управления кухней.\n\n"
+            "Нажмите кнопку ниже, чтобы открыть приложение. "
+            "Если нужные разделы недоступны, попросите администратора назначить вам роль."
         )
 
     await message.answer(
-        "👋 Добро пожаловать в систему управления кухней!\n\n"
-        "Нажмите кнопку ниже, чтобы открыть приложение.\n\n"
-        "📌 <b>Как добавить сотрудника:</b>\n"
-        "1. Отправьте ему ссылку на этого бота\n"
-        "2. Он нажимает /start и «Открыть кухню»\n"
-        "3. Вы (админ) в приложении → вкладка «Роли» → выбираете роль\n\n"
-        "Роли:\n"
-        "• <b>Повар</b> — смена, ревизия, просмотр ТТК\n"
-        "• <b>Су-шеф/Шеф</b> — всё + ингредиенты, ТТК, заказы"
-        f"{role_hint}",
+        text,
         reply_markup=get_webapp_keyboard(),
         parse_mode="HTML",
     )
 
 
 async def cmd_app(message: Message):
+    await ensure_user_from_message(message)
     await message.answer(
         "Откройте приложение кухни:",
         reply_markup=get_webapp_keyboard(),
@@ -63,15 +106,30 @@ async def cmd_myid(message: Message):
 
 
 async def cmd_help(message: Message):
+    user = await ensure_user_from_message(message)
+    if user and user.role == UserRole.ADMIN:
+        text = (
+            "<b>Команды:</b>\n"
+            "/start — приветствие и кнопка приложения\n"
+            "/app — открыть приложение\n"
+            "/myid — узнать свой Telegram ID\n"
+            "/help — эта справка\n\n"
+            "<b>Добавление сотрудников</b>:\n"
+            "Отправьте коллеге ссылку на бота. "
+            "Когда он нажмёт /start, он появится во вкладке «Роли»."
+        )
+    else:
+        text = (
+            "<b>Команды:</b>\n"
+            "/start — приветствие и кнопка приложения\n"
+            "/app — открыть приложение\n"
+            "/myid — узнать свой Telegram ID\n"
+            "/help — эта справка\n\n"
+            "Если вам нужен доступ к разделам приложения, обратитесь к администратору."
+        )
+
     await message.answer(
-        "<b>Команды:</b>\n"
-        "/start — приветствие и кнопка приложения\n"
-        "/app — открыть приложение\n"
-        "/myid — узнать свой Telegram ID\n"
-        "/help — эта справка\n\n"
-        "<b>Добавление сотрудников</b> (для админа):\n"
-        "Просто отправьте коллеге ссылку на бота. "
-        "Когда он откроет приложение, он появится во вкладке «Роли».",
+        text,
         parse_mode="HTML",
     )
 

@@ -81,6 +81,9 @@ async def get_current_user(
         )
         db.add(user)
         await db.flush()
+    else:
+        user.username = user_data.get("username")
+        user.first_name = user_data.get("first_name", user.first_name)
 
     return user
 

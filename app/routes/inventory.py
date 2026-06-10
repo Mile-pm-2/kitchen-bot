@@ -12,6 +12,7 @@ from app.schemas import (
     IngredientCreate,
     IngredientOut,
     IngredientUpdate,
+    OrderItemCreate,
     OrderItemOut,
     RevisionUpdate,
 )
@@ -33,6 +34,18 @@ def _ingredient_out(ing: Ingredient) -> IngredientOut:
         current_quantity=ing.current_quantity,
         last_revision_at=ing.last_revision_at,
         needs_order=needs_order,
+    )
+
+
+def _order_item_out(item: OrderItem) -> OrderItemOut:
+    return OrderItemOut(
+        id=item.id,
+        ingredient_id=item.ingredient_id,
+        ingredient_name=item.ingredient.name,
+        unit=item.ingredient.unit,
+        quantity_at_trigger=item.quantity_at_trigger,
+        min_quantity=item.min_quantity,
+        created_at=item.created_at,
     )
 
 
@@ -166,18 +179,45 @@ async def list_orders(
         .order_by(OrderItem.created_at.desc())
     )
     items = result.scalars().all()
-    return [
-        OrderItemOut(
-            id=item.id,
-            ingredient_id=item.ingredient_id,
-            ingredient_name=item.ingredient.name,
-            unit=item.ingredient.unit,
-            quantity_at_trigger=item.quantity_at_trigger,
-            min_quantity=item.min_quantity,
-            created_at=item.created_at,
+    return [_order_item_out(item) for item in items]
+
+
+@router.post("/orders", response_model=OrderItemOut)
+async def create_order_item(
+    data: OrderItemCreate,
+    user: User = Depends(require_role(UserRole.CHEF)),
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(
+        select(Ingredient).where(Ingredient.id == data.ingredient_id)
+    )
+    ingredient = result.scalar_one_or_none()
+    if not ingredient:
+        raise HTTPException(status_code=404, detail="Ингредиент не найден")
+
+    existing = await db.execute(
+        select(OrderItem)
+        .where(
+            OrderItem.ingredient_id == ingredient.id,
+            OrderItem.is_resolved.is_(False),
         )
-        for item in items
-    ]
+        .options(selectinload(OrderItem.ingredient))
+    )
+    item = existing.scalar_one_or_none()
+    if item:
+        return _order_item_out(item)
+
+    item = OrderItem(
+        ingredient_id=ingredient.id,
+        quantity_at_trigger=ingredient.current_quantity
+        if ingredient.current_quantity is not None
+        else 0,
+        min_quantity=ingredient.min_quantity,
+    )
+    db.add(item)
+    await db.flush()
+    item.ingredient = ingredient
+    return _order_item_out(item)
 
 
 @router.post("/orders/{order_id}/resolve")

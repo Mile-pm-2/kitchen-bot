@@ -528,16 +528,18 @@ const App = {
     async renderOrders() {
         const orders = await API.getOrders(false);
         const content = document.getElementById('content');
+        let html = `<button class="fab" onclick="App.showAddOrder()">+</button>`;
 
         if (orders.length === 0) {
-            content.innerHTML = `<div class="empty-state">
+            content.innerHTML = `${html}<div class="empty-state">
                 <div class="empty-icon empty-icon-success"></div>
                 <p>Всё в наличии, заказывать нечего</p>
+                <p>Можно добавить ингредиент вручную</p>
             </div>`;
             return;
         }
 
-        let html = `<div class="card">`;
+        html += `<div class="card">`;
         orders.forEach(o => {
             html += `
                 <div class="ingredient-item order-item order-alert">
@@ -553,6 +555,44 @@ const App = {
         });
         html += `</div>`;
         content.innerHTML = html;
+    },
+
+    async showAddOrder() {
+        const ingredients = await API.getIngredients();
+        if (ingredients.length === 0) {
+            this.toast('Сначала добавьте ингредиенты в ревизии', 'error');
+            return;
+        }
+
+        this.openModal('Добавить в заказ', `
+            <div class="form-group">
+                <label>Ингредиент</label>
+                <select id="order-ingredient">
+                    ${ingredients.map(ing => `
+                        <option value="${ing.id}">
+                            ${ing.name} (${ing.unit})
+                        </option>
+                    `).join('')}
+                </select>
+            </div>
+            <p class="card-subtitle">Позиция появится в заказе, даже если остаток выше минимума.</p>
+        `, `<button class="btn btn-primary" onclick="App.handleAddOrder()">Добавить</button>`);
+    },
+
+    async handleAddOrder() {
+        const ingredientId = Number(document.getElementById('order-ingredient').value);
+        if (!ingredientId) {
+            this.toast('Выберите ингредиент', 'error');
+            return;
+        }
+
+        try {
+            await API.createOrder(ingredientId);
+            this.closeModal();
+            this.toast('Добавлено в заказ', 'success');
+            await this.render();
+            this.updateOrdersBadge();
+        } catch (e) { this.toast(e.message, 'error'); }
     },
 
     async handleResolveOrder(id) {

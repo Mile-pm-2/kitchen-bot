@@ -271,20 +271,19 @@ body {
 }
 
 .nav-icon-users::before {
-    width: 8px;
-    height: 8px;
-    left: 3px;
+    width: 9px;
+    height: 9px;
+    left: 6px;
     top: 3px;
     border: 2px solid currentColor;
     border-radius: 50%;
-    box-shadow: 8px 0 0 -2px currentColor;
 }
 
 .nav-icon-users::after {
-    left: 2px;
-    right: 2px;
+    left: 4px;
+    right: 4px;
     bottom: 3px;
-    height: 7px;
+    height: 8px;
     border: 2px solid currentColor;
     border-radius: 8px 8px 4px 4px;
 }
@@ -806,17 +805,17 @@ body {
 }
 
 .empty-icon-users::before {
-    inset: 12px auto auto 11px;
-    width: 10px;
-    height: 10px;
+    inset: 11px auto auto 17px;
+    width: 12px;
+    height: 12px;
     border-radius: 50%;
 }
 
 .empty-icon-users::after {
-    left: 10px;
-    right: 10px;
-    bottom: 11px;
-    height: 11px;
+    left: 12px;
+    right: 12px;
+    bottom: 10px;
+    height: 13px;
     border: 2px solid rgba(255, 255, 255, 0.72);
     border-radius: 12px 12px 6px 6px;
 }
