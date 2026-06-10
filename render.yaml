@@ -1,17 +1,14 @@
-# Деплой на Render.com (бесплатный тариф)
-# https://render.com — зарегистрируйтесь и подключите GitHub-репозиторий
+# Деплой на Render.com через Docker (Python 3.11)
+# В Render: New Web Service → подключить репозиторий → Runtime: Docker
 
 services:
   - type: web
     name: kitchen-bot
-    runtime: python
+    runtime: docker
     plan: free
-    buildCommand: pip install --upgrade pip && pip install -r requirements.txt
-    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    dockerfilePath: ./Dockerfile
     healthCheckPath: /health
     envVars:
-      - key: PYTHON_VERSION
-        value: "3.11.11"
       - key: WEBHOOK_MODE
         value: "true"
       - key: BOT_TOKEN
