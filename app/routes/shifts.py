@@ -125,7 +125,7 @@ async def all_shifts_history(
     """История всех смен (для шефов)."""
     from app.models import UserRole
 
-    if user.role not in (UserRole.CHEF, UserRole.ADMIN):
+    if user.role not in (UserRole.CHEF, UserRole.SOUS_CHEF, UserRole.ADMIN):
         raise HTTPException(status_code=403, detail="Только для шефов")
 
     result = await db.execute(

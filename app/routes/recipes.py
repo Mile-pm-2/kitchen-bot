@@ -65,7 +65,7 @@ async def get_recipe(
 @router.post("", response_model=RecipeOut)
 async def create_recipe(
     data: RecipeCreate,
-    user: User = Depends(require_role(UserRole.CHEF)),
+    user: User = Depends(require_role(UserRole.CHEF, UserRole.SOUS_CHEF)),
     db: AsyncSession = Depends(get_db),
 ):
     recipe = Recipe(
@@ -96,7 +96,7 @@ async def create_recipe(
 async def update_recipe(
     recipe_id: int,
     data: RecipeUpdate,
-    user: User = Depends(require_role(UserRole.CHEF)),
+    user: User = Depends(require_role(UserRole.CHEF, UserRole.SOUS_CHEF)),
     db: AsyncSession = Depends(get_db),
 ):
     result = await db.execute(
@@ -140,7 +140,7 @@ async def update_recipe(
 @router.delete("/{recipe_id}")
 async def delete_recipe(
     recipe_id: int,
-    user: User = Depends(require_role(UserRole.CHEF)),
+    user: User = Depends(require_role(UserRole.CHEF, UserRole.SOUS_CHEF)),
     db: AsyncSession = Depends(get_db),
 ):
     result = await db.execute(select(Recipe).where(Recipe.id == recipe_id))

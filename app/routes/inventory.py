@@ -83,7 +83,7 @@ async def list_ingredients(
 @router.post("/ingredients", response_model=IngredientOut)
 async def create_ingredient(
     data: IngredientCreate,
-    user: User = Depends(require_role(UserRole.CHEF)),
+    user: User = Depends(require_role(UserRole.CHEF, UserRole.SOUS_CHEF)),
     db: AsyncSession = Depends(get_db),
 ):
     existing = await db.execute(select(Ingredient).where(Ingredient.name == data.name))
@@ -104,7 +104,7 @@ async def create_ingredient(
 async def update_ingredient(
     ingredient_id: int,
     data: IngredientUpdate,
-    user: User = Depends(require_role(UserRole.CHEF)),
+    user: User = Depends(require_role(UserRole.CHEF, UserRole.SOUS_CHEF)),
     db: AsyncSession = Depends(get_db),
 ):
     result = await db.execute(select(Ingredient).where(Ingredient.id == ingredient_id))
@@ -127,7 +127,7 @@ async def update_ingredient(
 @router.delete("/ingredients/{ingredient_id}")
 async def delete_ingredient(
     ingredient_id: int,
-    user: User = Depends(require_role(UserRole.CHEF)),
+    user: User = Depends(require_role(UserRole.CHEF, UserRole.SOUS_CHEF)),
     db: AsyncSession = Depends(get_db),
 ):
     result = await db.execute(select(Ingredient).where(Ingredient.id == ingredient_id))
@@ -168,7 +168,7 @@ async def update_revision(
 
 @router.get("/orders", response_model=list[OrderItemOut])
 async def list_orders(
-    user: User = Depends(require_role(UserRole.CHEF)),
+    user: User = Depends(require_role(UserRole.CHEF, UserRole.SOUS_CHEF)),
     db: AsyncSession = Depends(get_db),
     resolved: bool = False,
 ):
@@ -185,7 +185,7 @@ async def list_orders(
 @router.post("/orders", response_model=OrderItemOut)
 async def create_order_item(
     data: OrderItemCreate,
-    user: User = Depends(require_role(UserRole.CHEF)),
+    user: User = Depends(require_role(UserRole.CHEF, UserRole.SOUS_CHEF)),
     db: AsyncSession = Depends(get_db),
 ):
     result = await db.execute(
@@ -223,7 +223,7 @@ async def create_order_item(
 @router.post("/orders/{order_id}/resolve")
 async def resolve_order(
     order_id: int,
-    user: User = Depends(require_role(UserRole.CHEF)),
+    user: User = Depends(require_role(UserRole.CHEF, UserRole.SOUS_CHEF)),
     db: AsyncSession = Depends(get_db),
 ):
     result = await db.execute(select(OrderItem).where(OrderItem.id == order_id))

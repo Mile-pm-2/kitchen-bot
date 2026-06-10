@@ -99,15 +99,21 @@ body {
 }
 
 .badge.chef {
+    border-color: rgba(216, 163, 93, 0.52);
+    color: #ffe2b7;
+    background: rgba(216, 163, 93, 0.16);
+}
+
+.badge.sous_chef {
     border-color: rgba(159, 183, 255, 0.48);
     color: #dbe4ff;
     background: rgba(159, 183, 255, 0.13);
 }
 
 .badge.admin {
-    border-color: rgba(216, 163, 93, 0.52);
-    color: #ffe2b7;
-    background: rgba(216, 163, 93, 0.16);
+    border-color: rgba(242, 193, 125, 0.56);
+    color: #ffe9c9;
+    background: rgba(242, 193, 125, 0.18);
 }
 
 .content {
@@ -205,22 +211,6 @@ body {
     content: "";
     position: absolute;
     box-sizing: border-box;
-}
-
-.nav-icon-shift::before {
-    inset: 2px;
-    border: 2px solid currentColor;
-    border-radius: 50%;
-}
-
-.nav-icon-shift::after {
-    width: 7px;
-    height: 7px;
-    left: 10px;
-    top: 5px;
-    border-left: 2px solid currentColor;
-    border-bottom: 2px solid currentColor;
-    transform-origin: left bottom;
 }
 
 .nav-icon-revision::before {
@@ -353,56 +343,6 @@ body {
     display: flex;
     gap: 8px;
     margin-top: 14px;
-}
-
-.shift-status {
-    text-align: center;
-    padding: 20px 12px;
-}
-
-.shift-indicator {
-    width: 86px;
-    height: 86px;
-    border-radius: 50%;
-    margin: 0 auto 14px;
-    display: grid;
-    place-items: center;
-    font-size: 0;
-}
-
-.shift-indicator.open {
-    background: rgba(52, 211, 153, 0.14);
-    border: 2px solid rgba(52, 211, 153, 0.72);
-    box-shadow: 0 0 0 10px rgba(52, 211, 153, 0.08);
-}
-
-.shift-indicator.closed {
-    background: rgba(251, 113, 133, 0.14);
-    border: 2px solid rgba(251, 113, 133, 0.72);
-    box-shadow: 0 0 0 10px rgba(251, 113, 133, 0.08);
-}
-
-.shift-indicator::before {
-    content: "";
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: currentColor;
-    box-shadow: 0 0 0 9px rgba(255, 255, 255, 0.04);
-}
-
-.shift-indicator.open {
-    color: var(--success);
-}
-
-.shift-indicator.closed {
-    color: var(--danger);
-}
-
-.shift-time {
-    margin-top: 6px;
-    color: var(--text-2);
-    font-size: 13px;
 }
 
 .ingredient-item {
@@ -842,6 +782,17 @@ body {
 
 .user-item select:disabled {
     opacity: 0.55;
+}
+
+.role-chip {
+    flex: 0 0 auto;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.13);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text-2);
+    font-size: 12px;
+    font-weight: 650;
+    padding: 7px 10px;
 }
 
 .help-card {

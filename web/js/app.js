@@ -1,17 +1,16 @@
 const App = {
     user: null,
-    currentTab: 'shift',
+    currentTab: 'recipes',
     isChef: false,
-    isAdmin: false,
 
     roleLabels: {
         cook: 'Повар',
-        chef: 'Су-шеф/Шеф',
+        sous_chef: 'Су-шеф',
+        chef: 'Шеф',
         admin: 'Админ',
     },
 
     tabTitles: {
-        shift: 'Смена',
         revision: 'Ревизия',
         recipes: 'ТТК',
         orders: 'К заказу',
@@ -22,8 +21,7 @@ const App = {
         API.init();
         try {
             this.user = await API.getMe();
-            this.isChef = ['chef', 'admin'].includes(this.user.role);
-            this.isAdmin = this.user.role === 'admin';
+            this.isChef = ['sous_chef', 'chef', 'admin'].includes(this.user.role);
             this.setupUI();
             this.setupNav();
             this.setupModal();
@@ -42,9 +40,6 @@ const App = {
 
         document.querySelectorAll('.chef-only').forEach(el => {
             el.classList.toggle('hidden', !this.isChef);
-        });
-        document.querySelectorAll('.admin-only').forEach(el => {
-            el.classList.toggle('hidden', !this.isAdmin);
         });
     },
 
@@ -102,12 +97,33 @@ const App = {
         return d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
     },
 
+    assignableRoles() {
+        const roles = {
+            cook: [],
+            sous_chef: ['cook', 'sous_chef'],
+            chef: ['cook', 'sous_chef', 'chef'],
+            admin: ['cook', 'sous_chef', 'chef', 'admin'],
+        };
+        return roles[this.user?.role] || [];
+    },
+
+    canEditUserRole(user) {
+        if (user.id === this.user.id) return false;
+        if (user.role === 'admin' && this.user.role !== 'admin') return false;
+        return this.assignableRoles().includes(user.role);
+    },
+
+    roleOptionsHTML(selectedRole) {
+        return this.assignableRoles().map(role =>
+            `<option value="${role}" ${selectedRole === role ? 'selected' : ''}>${this.roleLabels[role]}</option>`
+        ).join('');
+    },
+
     async render() {
         const content = document.getElementById('content');
         content.innerHTML = '<div class="empty-state">Загрузка...</div>';
 
         const renderers = {
-            shift: () => this.renderShift(),
             revision: () => this.renderRevision(),
             recipes: () => this.renderRecipes(),
             orders: () => this.renderOrders(),
@@ -119,85 +135,6 @@ const App = {
         } catch (e) {
             content.innerHTML = `<div class="empty-state"><div class="empty-icon empty-icon-error"></div><p>${e.message}</p></div>`;
         }
-    },
-
-    // ─── СМЕНА ───
-    async renderShift() {
-        const status = await API.getShiftStatus();
-        const history = await API.getShiftHistory();
-        const content = document.getElementById('content');
-
-        const isOpen = status.is_open;
-        const shift = status.current_shift;
-
-        let html = `
-            <div class="card">
-                <div class="shift-status">
-                    <div class="shift-indicator ${isOpen ? 'open' : 'closed'}"></div>
-                    <div class="card-title">${isOpen ? 'Смена открыта' : 'Смена закрыта'}</div>
-                    ${isOpen && shift ? `
-                        <div class="shift-time">Начало: ${this.formatDate(shift.opened_at)}</div>
-                    ` : ''}
-                </div>
-                <div class="btn-group">
-                    ${isOpen
-                        ? `<button class="btn btn-danger" onclick="App.handleCloseShift()">Закрыть смену</button>`
-                        : `<button class="btn btn-success" onclick="App.handleOpenShift()">Открыть смену</button>`
-                    }
-                </div>
-            </div>
-        `;
-
-        if (history.length > 0) {
-            html += `<div class="card"><div class="card-title">Мои смены</div>`;
-            history.slice(0, 10).forEach(s => {
-                const duration = s.closed_at
-                    ? this.formatTime(s.opened_at) + ' — ' + this.formatTime(s.closed_at)
-                    : this.formatTime(s.opened_at) + ' — сейчас';
-                html += `
-                    <div class="history-item">
-                        <span>${this.formatDate(s.opened_at).split(',')[0]}</span>
-                        <span>${duration}</span>
-                    </div>`;
-            });
-            html += `</div>`;
-        }
-
-        if (this.isChef) {
-            const allShifts = await API.getAllShifts();
-            if (allShifts.length > 0) {
-                html += `<div class="card"><div class="card-title">Все смены</div>`;
-                allShifts.slice(0, 15).forEach(s => {
-                    const duration = s.closed_at
-                        ? this.formatTime(s.opened_at) + ' — ' + this.formatTime(s.closed_at)
-                        : this.formatTime(s.opened_at) + ' — сейчас';
-                    html += `
-                        <div class="history-item">
-                            <span>${s.user_name}</span>
-                            <span>${duration}</span>
-                        </div>`;
-                });
-                html += `</div>`;
-            }
-        }
-
-        content.innerHTML = html;
-    },
-
-    async handleOpenShift() {
-        try {
-            await API.openShift();
-            this.toast('Смена открыта!', 'success');
-            await this.render();
-        } catch (e) { this.toast(e.message, 'error'); }
-    },
-
-    async handleCloseShift() {
-        try {
-            await API.closeShift();
-            this.toast('Смена закрыта!', 'success');
-            await this.render();
-        } catch (e) { this.toast(e.message, 'error'); }
     },
 
     // ─── РЕВИЗИЯ ───
@@ -624,13 +561,8 @@ const App = {
 
         let html = `
             <div class="card help-card">
-                <div class="card-title">Как добавить сотрудника</div>
-                <ol class="help-steps">
-                    <li>Отправьте коллеге ссылку на бота в Telegram</li>
-                    <li>Он нажимает <b>/start</b> и кнопку «Открыть кухню»</li>
-                    <li>Человек появится в списке ниже — выберите ему роль</li>
-                </ol>
-                <p class="card-subtitle">Регистрировать вручную не нужно — вход через Telegram.</p>
+                <div class="card-title">Роли сотрудников</div>
+                <p class="card-subtitle">Сотрудник появляется здесь после /start в боте. Доступ к изменению ролей зависит от вашей роли.</p>
             </div>
         `;
 
@@ -645,17 +577,18 @@ const App = {
         html += `<div class="card"><div class="card-title">Сотрудники (${users.length})</div>`;
         users.forEach(u => {
             const isMe = u.id === this.user.id;
+            const canEdit = this.canEditUserRole(u);
             html += `
                 <div class="user-item">
                     <div>
                         <div class="ingredient-name">${u.first_name}${isMe ? ' (вы)' : ''}</div>
                         <div class="ingredient-meta">${u.username ? '@' + u.username : 'ID: ' + u.telegram_id}</div>
                     </div>
-                    <select onchange="App.handleRoleChange(${u.id}, this.value)" ${isMe ? 'disabled' : ''}>
-                        <option value="cook" ${u.role === 'cook' ? 'selected' : ''}>Повар</option>
-                        <option value="chef" ${u.role === 'chef' ? 'selected' : ''}>Су-шеф/Шеф</option>
-                        <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Админ</option>
-                    </select>
+                    ${canEdit ? `
+                        <select onchange="App.handleRoleChange(${u.id}, this.value)">
+                            ${this.roleOptionsHTML(u.role)}
+                        </select>
+                    ` : `<span class="role-chip">${this.roleLabels[u.role] || u.role}</span>`}
                 </div>`;
         });
         html += `</div>`;

@@ -45,13 +45,6 @@ const API = {
     getUsers: () => API.get('/api/users'),
     updateUserRole: (id, role) => API.put(`/api/users/${id}/role`, { role }),
 
-    // Shifts
-    getShiftStatus: () => API.get('/api/shifts/status'),
-    openShift: () => API.post('/api/shifts/open'),
-    closeShift: () => API.post('/api/shifts/close'),
-    getShiftHistory: () => API.get('/api/shifts/history'),
-    getAllShifts: () => API.get('/api/shifts/all'),
-
     // Inventory
     getIngredients: () => API.get('/api/inventory/ingredients'),
     createIngredient: (data) => API.post('/api/inventory/ingredients', data),
